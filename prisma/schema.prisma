@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String   @unique
+  hashedPassword String
+
+  plantoes      Plantao[]
+  plantaoTrocaSolicitante PlantaoTroca[] @relation("userSolicitante")
+  plantaoTrocaRecebedor   PlantaoTroca[] @relation("userRecebedor")
+}
+
+model Plantao {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String         @db.ObjectId
+  data        DateTime
+  turno       String
+
+  user        User           @relation(fields: [userId], references: [id])
+
+  plantaoTrocaOriginal PlantaoTroca[] @relation("plantaoOriginal")
+  plantaoTrocaNovo     PlantaoTroca[] @relation("plantaoNovo")
+}
+
+model PlantaoTroca {
+  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
+  userSolicitanteId    String         @db.ObjectId
+  userRecebedorId      String         @db.ObjectId
+  idPlantaoOriginal    String         @db.ObjectId
+  idPlantaoNovo        String         @db.ObjectId
+  status               Int  
+  data_solicitacao     DateTime
+  data_aceitacao       DateTime
+
+
+  userSolicitante      User           @relation("userSolicitante", fields: [userSolicitanteId], references: [id])
+  userRecebedor        User           @relation("userRecebedor", fields: [userRecebedorId], references: [id])
+  plantaoOriginal      Plantao        @relation("plantaoOriginal",fields: [idPlantaoOriginal], references: [id])
+  plantaoNovo          Plantao        @relation("plantaoNovo",fields: [idPlantaoNovo], references: [id])
+}
